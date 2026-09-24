@@ -1,6 +1,6 @@
 # ISA 401 Job Scout Chat
 
-**Live app:** https://job-scout-chat.onrender.com (free tier: the first request after 15 idle minutes takes about a minute)
+**Live app:** https://business-intelligence-gzb7.onrender.com (free tier: the first request after 15 idle minutes takes about a minute)
 
 **Ask a question in plain English, get the SQL, a table, and a chart back**
 
