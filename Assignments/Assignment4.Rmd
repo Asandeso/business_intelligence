@@ -1,0 +1,32 @@
+---
+title: "Assignment 4 ISA401"
+output: html_document
+date: "2026-09-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+con = DBI::dbConnect(RSQLite::SQLite(), "../data/midwest_airbnb.db")
+listings = DBI::dbReadTable(con, "listings")
+
+```
+
+```{r}
+nrow(listings)                                    # A1
+sum(listings$city == "Columbus")                  # A2
+length(unique(listings$neighbourhood[listings$city == "Chicago"]))  # A4
+sum(listings$host_is_superhost == "t", na.rm = TRUE)   #A5
+sum(listings$price > 1000)        #A6
+```
+
+```{r}
+chicago = listings[listings$city == "Chicago", ]
+chicago[which.max(chicago$price), "name"]
+```
+
+

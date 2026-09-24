@@ -1,0 +1,38 @@
+---
+title: "Class 8"
+date: "2026-09-21"
+output: html_document:
+  toc: TRUE
+  toc_float: TRUE
+  number_sections: TRUE
+  code_dowloading: TRUE
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Illustratinf the 'httr2' function
+```{r}
+httr2::request("https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json") |>
+  httr2::req_url_query("$limit" = 5) |>
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON()
+```
+```{r}
+httr2::request("https://api.stlouisfed.org/fred/series/observations") |>
+  httr2::req_url_query(
+    series_id = "IHLIDXUSOH",
+    api_key = Sys.getenv("FRED_API_KEY"),
+    file_type = "json"
+  ) |>
+  # nothing has been sent yet
+  httr2::req_perform() |>
+  httr2::resp_body_string() |>
+  jsonlite::fromJSON()
+
+dplyr::glimpse(ohio_jobs)
+```
+

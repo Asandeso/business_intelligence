@@ -1,0 +1,99 @@
+---
+title: "Class7"
+output: 
+date: "2026-09-16"
+  html_document:
+    toc: TRUE
+    toc_float: TRUE 
+    number_sections: TRUE 
+    code_downloading: TRUE
+    code_floating: 'show'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+##demo
+
+```{r}
+con = DBI::dbConnect(RSQLite::SQLite(), "../data/scout.db")
+postings = DBI::dbReadTable(con, "scout_postings") |> tibble::as_tibble()
+DBI::dbDisconnect(con)
+ 
+jobs = postings |>
+  dplyr::select(company, title, location_state, remote, category, posted_at, last_seen_at) |>
+  dplyr::mutate(dplyr::across(dplyr::ends_with("_at"), as.Date),
+                days_open = as.numeric(last_seen_at - posted_at))
+```
+
+
+# for Q1 we need the following
+#-number of jobs per category
+#- fraction of thoses jobs that are remote friendly 
+```{r}
+jobs |> 
+  dplyr::group_by(category) |>
+  dplyr::summarise(
+    postings=dplyr::n(),#counting the number of rows per category
+    remote_share=mean(remote) |> round(3)
+  )
+
+```
+# Q3: amoung the full time jobs which state have the highest remote share?
+```{r}
+jobs|>
+  dplyr::filter(category=="fulltime") |>
+  dplyr::group_by(location_state) |> 
+   dplyr::summarise(
+    postings=dplyr::n(),#counting the number of rows per category
+    remote_share=mean(remote) |> round(3)
+  ) |> 
+  dplyr::filter(postings>= 50) |> # up to you to determine the min threshold
+  dplyr::arrange(dplyr::desc(remote_share)) |> 
+  head(3)
+```
+
+
+```{r}
+
+con = DBI::dbConnect(RSQLite::SQLite(), "../data/midwest_airbnb.db")
+listings = DBI::dbReadTable(con, "listings") |>
+  tibble::as_tibble()
+DBI::dbDisconnect(con)
+dplyr::glimpse(listings)
+```
+
+
+#practice
+
+```{r} 
+listings |> 
+  dplyr::group_by(city) |> 
+  dplyr::summarise(postings=dplyr::n())
+```
+
+```{r}
+listings |> 
+  dplyr::group_by(city) |> 
+  dplyr::filter(room_type=='Entire home/apt',accommodates >= 4) |> 
+  dplyr::summarise(
+    median_price=median(price),
+    n=dplyr::n())
+```
+
+```{r}
+listings |> 
+    dplyr::mutate(price_per_person=round(price/accommodates,2)) |> 
+  dplyr::arrange(price_per_person) |> 
+   dplyr::slice_head(n = 3) |> 
+    dplyr::select(name, city, price, accommodates, price_per_person)
+```
+
+```{r}
+listings |> 
+  dplyr::count(host_name, sort=TRUE) |> 
+    dplyr::slice_head(n = 5)
+```
+

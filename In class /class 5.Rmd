@@ -1,0 +1,64 @@
+---
+title: "Class 5"
+date: "2026-09-09"
+output: 
+html_document:
+    toc: TRUE 
+    toc_float: TRUE 
+    numbered_sections: TRUE 
+    code_folding: TRUE 
+    code_download: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+campus = jsonlite::fromJSON(
+  "https://isa401-find-your-seat.vercel.app/campus.json")
+
+dplyr::glimpse(campus)
+
+fsb= campus[['Farmer']]
+fsb$code
+
+sum(fsb$floors$`2`$room$all_sections)
+
+fsb$rooms_source
+```
+
+#Reading the excel file
+
+```{r}
+occupation=readxl:: read_excel("../data/occupation.xlsx", sheet="Table 1.4", skip=1)
+
+
+
+# optional clean up 
+occupation=occupation[-c(32,33,34),]   #delete three speficif rows, keep al cols(since after the, is empty) --> 1:7
+```
+
+
+## JSON Data
+
+```{r}
+json_url = paste0("https://data.cincinnati-oh.gov/","resource/rvmt-pkmq.json?$limit=100")
+crashes_json = jsonlite::fromJSON(json_url)
+dplyr::glimpse(
+  crashes_json[, c("crashdate", "dayofweek", "crashseverity", "age")])
+```
+
+
+
+```{r}
+logins = readr::read_csv("https://isa401-import-heist.vercel.app/api/stage1")
+
+log = jsonlite::fromJSON("https://isa401-import-heist.vercel.app/api/stage2?key=smithj31")
+
+jsonlite::fromJSON("https://isa401-import-heist.vercel.app/api/finish?code=6")
+
+
+```
+
+
