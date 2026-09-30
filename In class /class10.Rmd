@@ -1,0 +1,72 @@
+---
+title: "class10"
+date: "2026-09-28"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE 
+    number_sections: TRUE 
+    code_download: TRUE
+    code_floating: TRUE
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Robotstxt
+
+The code chunk below will show the output from the [robotstxt package]() for the ISA course bulletin available at: <https://bulletin.miamioh.edu/courses-instruction/isa/>
+
+```{r}
+robotstxt::paths_allowed(paths = "/courses-instruction/isa/", domain = "bulletin.miamioh.edu", bot = "*")
+```
+
+## robotstxt demo 
+
+From the chunk below, we are allowed to scrape the [MU wiki page]()
+
+```{r}
+robotstxt::paths_allowed(paths = "/wiki/Miami_RedHawks", domain = "en.wikipedia.org", bot = "*")
+```
+
+```{r}
+robotstxt::paths_allowed(paths = "/jobs/", domain = "www.linkedin.com", bot = "*")
+```
+
+```{r}
+robotstxt::paths_allowed(paths = "/viewjob", domain = "www.indeed.com", bot = "*")
+
+```
+
+## 'rvest' demo: ISA course bulletin
+
+```{r}
+isa_page_in_r=rvest::read_html("https://bulletin.miamioh.edu/courses-instruction/isa/")
+
+#extract the titles
+# if all titles look same on page it means they have the same tag / class which would allow you to extract them in one step
+# we got the selected below by:
+## [a] highlighted course
+##[b] right clicked and selected inspect 
+##[c] found the part that was flushed containing the title 
+##[d] right clicked and copied the selector
+##[e] saw that output from code below only got 24th course so I dropped the ':nth-child(24)'
+isa_page_in_r |> rvest::html_elements(
+  "#sc_sccoursedescs > div > p.courseblocktitle > strong"
+  ) |> 
+  rvest::html_text2() -> isa_titles 
+
+isa_page_in_r |> 
+  rvest::html_element(".courseblockdesc") |> 
+  rvest::html_text2() -> isa_descs
+
+isa_df=data.frame(
+  title=isa_titles, description=isa_descs
+)
+```
+
+
+
