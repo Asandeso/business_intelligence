@@ -1,0 +1,55 @@
+---
+title: "Assignment 07"
+output: html_document
+date: "2026-10-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rvest)
+
+depts = c("Accountancy", "Economics", "Entrepreneurship", "Finance",
+          "Information_Systems_and_Analytics", "Marketing", "Management")
+
+fsb_df = data.frame() # initialize the container
+
+for (dept in depts) {
+  dept_url = paste0("https://miamioh.edu/fsb/directory/?up=/query/all/all/", dept, "/all")
+  webpage = read_html(dept_url)
+
+  # one table row per person; header rows have no td, so drop them
+  all_rows = webpage |> html_elements("table tr")
+  rows     = all_rows[!is.na(all_rows |> html_element("td"))]
+
+  # last cell holds the linked name and the position
+  person_cell = rows |> html_element("td:last-child")
+  name_link   = person_cell |> html_element("a")
+
+  names    = name_link |> html_text2() |> trimws()
+  websites = name_link |> html_attr("href")
+
+  # position = cell text minus the name at the start
+  cell_text     = person_cell |> html_text2()
+  positions_raw = substring(cell_text, nchar(names) + 1)
+  positions     = gsub("^[[:punct:][:space:]]+", "", positions_raw) |> trimws()
+
+  # remove trailing link text ("ee" + person's ID)
+  junk            = paste0("ee", basename(websites))
+  positions_clean = ifelse(endsWith(positions, junk),
+                           substr(positions, 1, nchar(positions) - nchar(junk)),
+                           positions) |> trimws()
+
+  df = data.frame(department = dept,
+                  name       = names,
+                  position   = positions_clean,
+                  website    = websites)
+
+  fsb_df = rbind(fsb_df, df)
+}
+
+head(fsb_df)
+table(fsb_df$department)
+```

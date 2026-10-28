@@ -1,0 +1,122 @@
+---
+title: "Class12"
+date: "2026-10-05"
+output: 
+  html_document:
+    toc: TRUE 
+    toc_float: TRUE
+    numbered_sections: TRUE 
+    code_downlaod: TRUE
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Plane crash info example
+
+
+```{r crashes, resluts='hold'}
+year = 2025
+
+crash_url = paste0('https://www.planecrashinfo.com/', year, '/', year, '.htm')
+
+crash_page <- rvest::read_html(crash_url, encoding = "ISO-8859-1")
+
+
+crash_page
+
+
+crash_tables <- crash_page |>
+  rvest::html_elements("table") |>
+  rvest::html_table()
+
+
+
+crash_df=crash_tables[[1]]
+
+
+# From a cleaning perspective there are several things that can be change
+# [1] Replace the colnames with the first row
+# [2] Have better column types ( e.g., Date being a date instead of character)
+# [3] There are possible things you can to to clean the data within columns: e.g., split column that contain multiple pieces of information
+# Column 4 has: fatalities/ # passengers(ground fatalities)
+
+
+# for todays class, we will focus on the first two
+
+
+colnames(crash_df)= crash_df[1, ]
+#then delete first row
+crash_df= crash_df[-1, ]
+
+crash_df=crash_df |>  
+  dplyr:: mutate(Date=lubridate::dmy(Date))
+
+head(crash_df)
+```
+
+
+
+## Game
+```{r}
+page = rvest::read_html("https://isa401-salvage.vercel.app/registry?start=1")
+classes = page |>
+  rvest::html_elements(".Dreadnought") |>
+  rvest::html_text2()
+length(classes)
+
+```
+
+```{r}
+base = "https://isa401-salvage.vercel.app"
+starts = seq(from = 1, to = 351, by = 50)
+pages = vector("list", length(starts))
+for (i in seq_along(starts)) {
+  pg = rvest::read_html(paste0(base, "/registry?start=", starts[i]))
+  pages[[i]] = data.frame(
+    class = pg |> rvest::html_elements("div > ul > li:nth-child(1) > span") |>
+      rvest::html_text2(),
+    value = pg |> rvest::html_elements("span.salvage-value") |>
+      rvest::html_text2() |> readr::parse_number()
+  )
+  Sys.sleep(1)
+}
+registry = dplyr::bind_rows(pages)
+
+registry |> dplyr::filter(class== "Dreadnought") |>  
+  dplyr::mutate(value=as.numeric(value))->Dreadnoughts_df
+
+
+sum(Dreadnoughts_df$value)
+```
+## Structured ext extraction 
+
+### Course Info
+
+```{r, courses}
+chat= ellmer::chat_openai(
+  model  = "gpt-5.6-luna" , # note that the API jey provided only works with 5.6 luna
+  params = ellmer::params(reasoning_effort = "none")
+)
+
+
+isa125_text= rvest::read_html("https://bulletin.miamioh.edu/courses-instruction/isa/") |> 
+  rvest::html_elements("#sc_sccoursedescs>div:nth-child(1)") |>  rvest::html_text2()
+
+
+course_info<- chat$chat_structured(
+  isa125_text,
+  type= ellmer::type_object(
+    name=ellmer::type_string(
+      description = "Name of the course. For example, ISA 235. Information Technology and the Intelligent Enterprise"
+    ),
+    description=ellmer::type_string(description = "The description of the course without the prereqs"),
+    prereqs=ellmer::type_string("List the information after prerequisite:")
+  )
+)
+```
+

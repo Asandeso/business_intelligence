@@ -1,0 +1,145 @@
+---
+title: "401Exam1"
+output: html_document
+date: "2026-10-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+penguins <- readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/penguin_captures.csv")
+```
+
+```{r}
+penguins |> dplyr::distinct(band, species) |> dplyr::count(species)
+```
+
+```{r}
+crashes_by_day = c(2020, 2241, 2327, 2285, 2380, "1866", 1664)
+names(crashes_by_day) = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+sum(crashes_by_day > 300)
+```
+
+```{r}
+campus <- jsonlite::fromJSON("https://isa401-find-your-seat.vercel.app/campus.json")
+```
+
+```{r}
+campus$Farmer$floors$"1"$sections
+```
+```{r}
+library(httr2)
+request("https://data.cincinnati-oh.gov/resource/rvmt-pkmq.json") |>
+  req_url_query(
+    `$select` = "count(*) AS rows, count(distinct localreportno) AS crashes, count(distinct instanceid) AS instances",
+    `$where` = "crashdate >= '2026-07-01T00:00:00' AND crashdate < '2026-08-01T00:00:00'"
+  ) |>
+  req_perform() |>
+  resp_body_json()
+```
+```{r}
+library(rvest)
+
+pg <- read_html("https://isa401-salvage.vercel.app/exam/registry?start=1")
+
+# what the page says (counts, "showing X to Y of Z", etc.)
+cat(substr(html_text2(pg), 1, 1500))
+
+# any tables on the page
+html_table(pg)
+
+# links that change start
+grep("start=", html_attr(html_elements(pg, "a"), "href"), value = TRUE)
+```
+```{r}
+library(rvest)
+
+starts <- seq(1, 321, by = 40)
+classes <- c()
+
+for (s in starts) {
+  pg <- read_html(paste0("https://isa401-salvage.vercel.app/exam/registry?start=", s))
+  txt <- html_text2(pg)
+  page_classes <- regmatches(txt, gregexpr("(?<=Class )[A-Za-z]+", txt, perl = TRUE))[[1]]
+  classes <- c(classes, page_classes)
+  Sys.sleep(1)
+}
+
+length(classes)
+table(classes)
+sum(classes == "Dreadnought")
+```
+```{r}
+ncse_tbl = readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/ncse_endowment_us_and_canada_2025.csv")
+dplyr::glimpse(ncse_tbl)
+```
+```{r}
+ncse_tbl = readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/ncse_endowment_us_and_canada_2025.csv")
+dplyr::glimpse(ncse_tbl)
+head(ncse_tbl, 10)
+```
+```{r}
+dplyr::count(ncse_tbl, institution_type)
+```
+
+```{r}
+ncse_tbl = readr::read_csv("https://raw.githubusercontent.com/fmegahed/isa401/main/data/ncse_endowment_us_and_canada_2025.csv")
+dplyr::glimpse(ncse_tbl)
+```
+```{r}
+jobs = data.frame(location_state = rep(state.abb[1:12], each = 200))
+nrow(jobs)
+
+jobs |>
+  dplyr::group_by(location_state) |>
+  dplyr::summarise(postings = dplyr::n()) |>
+  nrow()
+```
+
+
+
+```{r}
+jobs |>
+  dplyr::group_by(location_state) |>
+  dplyr::summarise(postings = dplyr::n())
+```
+
+```{r}
+
+readRenviron(file.choose())
+
+nchar(Sys.getenv("OPENAI_API_KEY")) > 0
+```
+
+
+```{r}
+library(ellmer)
+
+# 1. Create a chat object
+chat <- ellmer::chat_openai(model = "gpt-5.6-luna")
+
+# 2. Define the Airbnb listing description
+description <- "This one of a kind, turn of the century, fully restored mansion is just waiting for you to come and enjoy the vast amenities this house offers! This historic Victorian Mansion was built in the last 1800's and has been fully restored and updated with one thing in mind--luxury! We boast a slate pool table, 10 person hot tub, a custom made fire table, a built in giant projector screen for streaming, arcade games, and much much more! We comfortably sleep 19 guests with 9 dedicated bedrooms."
+
+# 3. Define the structured output schema
+schema <- ellmer::type_object(
+  property_type = ellmer::type_string(),
+  max_guests = ellmer::type_integer(),
+  num_bedrooms = ellmer::type_integer(),
+  key_amenities = ellmer::type_string(
+    "List key amenities separated by |"
+  )
+)
+
+# 4. Extract structured information
+result <- chat$chat_structured(
+  description,
+  type = schema
+)
+
+# 5. Display results
+print(result)
+```
+
